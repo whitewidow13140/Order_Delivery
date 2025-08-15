@@ -1,0 +1,3 @@
+spring:
+  artemis:
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://activemq:61616}

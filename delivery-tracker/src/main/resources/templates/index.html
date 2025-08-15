@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Delivery Tracker</title></head>
+<body>
+<h1>Delivery Tracker</h1>
+<h2>Deliveries</h2>
+<table border="1" cellpadding="4">
+  <thead><tr><th>ID</th><th>Order ID</th><th>Item</th><th>Qty</th><th>Status</th></tr></thead>
+  <tbody>
+  <tr th:each="d: ${deliveries}">
+    <td th:text="${d.id}">1</td>
+    <td th:text="${d.orderId}">1</td>
+    <td th:text="${d.item}">Item</td>
+    <td th:text="${d.quantity}">1</td>
+    <td th:text="${d.status}">PREPARING</td>
+  </tr>
+  </tbody>
+</table>
+<p><a href="/logout">Logout</a></p>
+</body>
+</html>

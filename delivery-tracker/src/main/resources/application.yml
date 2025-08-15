@@ -10,6 +10,8 @@ spring:
   h2:
     console:
       enabled: true
+      settings:
+        web-allow-others: true  # autorise l’accès depuis l’hôte (docker)
 
 server:
   port: 8080

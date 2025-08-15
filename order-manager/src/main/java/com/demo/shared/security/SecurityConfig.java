@@ -20,6 +20,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            .csrf(csrf -> csrf.disable())
             .formLogin(login -> login
                 .loginPage("/login").permitAll()
                 .defaultSuccessUrl("/", true)

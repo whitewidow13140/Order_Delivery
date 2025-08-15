@@ -155,6 +155,16 @@ JDBC URL : jdbc:h2:mem:delivery
 User : sa — Password : (vide)
 
 
+### AdMiner
+
+Adminer UI : http://localhost:8083 
+
+→ System “PostgreSQL”
+→ Server postgres 
+→ User demo
+→ Pass demo
+→ DB demo
+
 # 🧪 Lancer les tests automatisés
 
 1️⃣ Installer les dépendances

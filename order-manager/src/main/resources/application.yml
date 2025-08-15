@@ -28,3 +28,7 @@ server:
         same-site: Lax
         name: ORDERSESSIONID
 
+logging:
+  pattern:
+    level: "%5p [corrId=%X{corrId}]"
+

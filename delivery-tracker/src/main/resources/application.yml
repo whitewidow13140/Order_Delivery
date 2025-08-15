@@ -24,3 +24,7 @@ server:
 environment:
   - SPRING_PROFILES_ACTIVE=docker
   - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+
+logging:
+  pattern:
+    level: "%5p [corrId=%X{corrId}]"

@@ -9,4 +9,6 @@ public class OrderCreatedEvent {
     private String item;
     private Integer quantity;
     private Instant createdAt;
+
+    private String correlationId;
 }

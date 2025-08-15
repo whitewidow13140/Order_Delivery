@@ -23,7 +23,11 @@ public class SecurityConfig {
                 .loginPage("/login").permitAll()
                 .defaultSuccessUrl("/", true)
             )
-            .httpBasic(Customizer.withDefaults())   // <-- ACTIVE HTTP BASIC
+            .httpBasic(Customizer.withDefaults()) // pour curl -u
+            .rememberMe(rm -> rm
+                .key("demo-remember-me-key")   // clé arbitraire, stable
+                .tokenValiditySeconds(7 * 24 * 3600)  // 7 jours
+            )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")

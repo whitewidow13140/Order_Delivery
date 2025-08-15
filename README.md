@@ -140,6 +140,19 @@ mvn spring-boot:run
 | user  | user123      | USER  |
 
 
+### H2 console
+
+#### Order Manager : http://localhost:8081/h2-console
+
+JDBC URL : jdbc:h2:mem:orders
+
+User : sa — Password : (vide)
+
+#### Delivery Tracker : http://localhost:8082/h2-console
+
+JDBC URL : jdbc:h2:mem:delivery
+
+User : sa — Password : (vide)
 
 
 # 🧪 Lancer les tests automatisés

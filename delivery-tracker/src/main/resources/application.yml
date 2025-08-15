@@ -13,15 +13,13 @@ spring:
 
 server:
   port: 8080
-
-environment:
-  - SPRING_PROFILES_ACTIVE=docker
-  - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
-
-server:
   servlet:
     session:
       timeout: 2h
       cookie:
         http-only: true
         same-site: Lax
+
+environment:
+  - SPRING_PROFILES_ACTIVE=docker
+  - ACTIVEMQ_BROKER_URL=tcp://activemq:61616

@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller @RequiredArgsConstructor
+@Controller
+@RequiredArgsConstructor
 public class OrderController {
+
     private final OrderService service;
 
     // UI
@@ -42,6 +44,8 @@ public class OrderController {
         }
 
         @GetMapping
-        public List<Order> list() { return service.all(); }
+        public List<Order> list() {
+            return service.all();
+        }
     }
 }

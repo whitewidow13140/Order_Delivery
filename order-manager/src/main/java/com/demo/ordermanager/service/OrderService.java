@@ -46,7 +46,7 @@ public class OrderService {
             // 2) Propager le corrId en en-tête JMS (et en propriété)
             jmsTemplate.convertAndSend("queue.orders.new", evt, m -> {
                 m.setJMSCorrelationID(correlationId);
-                m.setStringProperty("X-Correlation-Id", correlationId);
+                //m.setStringProperty("X-Correlation-Id", correlationId);
                 return m;
             });
             log.info("JMS_EVENT_PUBLISHED orderId={} destination={} corrId={}",

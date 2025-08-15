@@ -2,6 +2,7 @@ package com.demo.shared.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer; // <-- ajout d'import
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,24 +13,25 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-				.anyRequest().authenticated()
-			)
-			.formLogin(login -> login
-				.loginPage("/login").permitAll()
-				.defaultSuccessUrl("/", true)  // après login, redirige vers /
-			)
-			.logout(logout -> logout
-				.logoutUrl("/logout")
-				.logoutSuccessUrl("/login?logout")
-				.permitAll()
-			)
-			.csrf(csrf -> csrf.disable());
-		return http.build();
-	}
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(login -> login
+                .loginPage("/login").permitAll()
+                .defaultSuccessUrl("/", true)
+            )
+            .httpBasic(Customizer.withDefaults())   // <-- ACTIVE HTTP BASIC
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .permitAll()
+            )
+            .csrf(csrf -> csrf.disable());
+        return http.build();
+    }
 
     @Bean
     public UserDetailsService users() {

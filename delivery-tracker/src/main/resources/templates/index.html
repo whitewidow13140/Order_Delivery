@@ -1,21 +1,64 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Delivery Tracker</title></head>
+<!doctype html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <title>Delivery Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent2:#3b82f6; --danger:#ef4444; --border:#1f2937;
+    }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial}
+    .container{max-width:1000px;margin:32px auto;padding:0 16px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    h1{font-size:24px;margin:0}
+    a.btn{display:inline-block;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:10px 14px;text-decoration:none;font-weight:600}
+    a.btn--warn{background:var(--danger)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+    th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
+    .badge--prep{background:#f59e0b1a;color:#fcd34d;border:1px solid #f59e0b4d}
+    .badge--ship{background:#3b82f61a;color:#93c5fd;border:1px solid #3b82f64d}
+    .badge--done{background:#22c55e1a;color:#86efac;border:1px solid #22c55e4d}
+    .muted{color:var(--muted)}
+  </style>
+</head>
 <body>
-<h1>Delivery Tracker</h1>
-<h2>Deliveries</h2>
-<table border="1" cellpadding="4">
-  <thead><tr><th>ID</th><th>Order ID</th><th>Item</th><th>Qty</th><th>Status</th></tr></thead>
-  <tbody>
-  <tr th:each="d: ${deliveries}">
-    <td th:text="${d.id}">1</td>
-    <td th:text="${d.orderId}">1</td>
-    <td th:text="${d.item}">Item</td>
-    <td th:text="${d.quantity}">1</td>
-    <td th:text="${d.status}">PREPARING</td>
-  </tr>
-  </tbody>
-</table>
-<p><a href="/logout">Logout</a></p>
+<div class="container">
+  <header>
+    <h1>🚚 Delivery Tracker</h1>
+    <div>
+      <a class="btn" href="/">Rafraîchir</a>
+      <form th:action="@{/logout}" method="post" style="display:inline">
+        <button type="submit" aria-label="Se déconnecter">Déconnexion</button>
+      </form>
+    </div>
+  </header>
+
+  <section class="card" aria-labelledby="deliv-list">
+    <h2 id="deliv-list">Livraisons</h2>
+    <table role="table" aria-describedby="deliv-list">
+      <thead>
+        <tr><th>ID</th><th>Order ID</th><th>Article</th><th>Qté</th><th>Statut</th></tr>
+      </thead>
+      <tbody>
+      <tr th:each="d: ${deliveries}">
+        <td th:text="${d.id}">1</td>
+        <td th:text="${d.orderId}">1</td>
+        <td th:text="${d.item}">Item</td>
+        <td th:text="${d.quantity}">1</td>
+        <td>
+          <span class="badge"
+                th:classappend="${d.status}=='DELIVERED' ? ' badge--done' : (${d.status}=='SHIPPED' ? ' badge--ship' : ' badge--prep')"
+                th:text="${d.status}">PREPARING</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <p class="muted">Chaque nouvelle commande crée automatiquement une livraison (via JMS).</p>
+  </section>
+</div>
 </body>
 </html>

@@ -80,7 +80,7 @@ my-demo-project/
 ## 🚀 Installation et démarrage
 
 **Prérequis :**
-- Docker + Docker Compose
+- Docker + Docker Compose (Docker desktop optionnel mais utile)
 - Java 17
 - Maven
 

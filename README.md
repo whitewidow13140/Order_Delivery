@@ -21,10 +21,10 @@ Il est conçu pour servir de **support de démonstration**, couvrant :
 ## 🏗 Architecture fonctionnelle
 
 ```
-[Order Manager] --REST--> [Delivery Tracker]
-| ^
-v |
-JMS --> [ActiveMQ Artemis] ---
+[User] --> [Order Manager UI/REST] --REST--> [Delivery Tracker UI/REST]
+                |                                        ^
+                v                                        |
+           JMS queue.orders.new  via ActiveMQ Artemis ----
 ```
 
 - **Order Manager**
@@ -95,6 +95,33 @@ cd my-demo-project```
 
 > docker-compose up --build
 
+### **Lancer les applications unitairement**
+
+#### Lancer ActiveMQ Artemis en local :
+
+```
+docker run -it --rm \
+    -e ARTEMIS_USER=admin \
+    -e ARTEMIS_PASSWORD=admin \
+    -p 8161:8161 -p 61616:61616 \
+    quay.io/artemiscloud/activemq-artemis-broker:latest
+```
+
+#### Lancer order-manager :
+
+```
+cd order-manager
+mvn spring-boot:run
+```
+
+
+#### Lancer delivery-tracker :
+
+```
+cd delivery-tracker
+mvn spring-boot:run
+```
+
 
 3️⃣ Accéder aux applications
 
@@ -127,22 +154,16 @@ cd my-demo-project```
 > robot tests/robot
 
 
-3️⃣ Exemple de test API (tests/robot/api_tests.robot)
+📈 Roadmap
 
-```
-*** Settings ***
-Library           RequestsLibrary
+* V1 - Base fonctionnelle (UI + API + JMS + tests)
 
-*** Variables ***
-${ORDER_MANAGER}  http://localhost:8081
-${DELIVERY_TRACKER}  http://localhost:8082
+* V2 - Passage à PostgreSQL
 
-*** Test Cases ***
-Create Order And Verify Delivery
-    Create Session    order    ${ORDER_MANAGER}
-    POST On Session   order    /orders    json={"item":"Laptop","quantity":1}
-    Sleep    2s
-    Create Session    delivery    ${DELIVERY_TRACKER}
-    ${resp}=    GET On Session    delivery    /deliveries
-    Should Contain    ${resp.text}    Laptop
-```
+* V3 - Monitoring (Prometheus + Grafana)
+
+* V4 - Pipeline CI/CD GitHub Actions
+
+* V5 - Tests de charge (JMeter)
+
+* V6 - Tests d’accessibilité (axe-core)

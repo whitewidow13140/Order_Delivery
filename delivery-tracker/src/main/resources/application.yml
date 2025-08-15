@@ -13,3 +13,7 @@ spring:
 
 server:
   port: 8080
+
+environment:
+  - SPRING_PROFILES_ACTIVE=docker
+  - ACTIVEMQ_BROKER_URL=tcp://activemq:61616

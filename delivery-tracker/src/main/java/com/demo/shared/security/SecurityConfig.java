@@ -12,21 +12,25 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**","/js/**","/images/**").permitAll()
-                .requestMatchers("/", "/login").permitAll()
-                .anyRequest().authenticated()
-            )
-            .formLogin(login -> login
-            .loginPage("/login").permitAll()
-            .defaultSuccessUrl("/", true)
-            )
-            .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
-            .csrf(csrf -> csrf.disable());
-        return http.build();
-    }
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		http
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+				.anyRequest().authenticated()
+			)
+			.formLogin(login -> login
+				.loginPage("/login").permitAll()
+				.defaultSuccessUrl("/", true)  // après login, redirige vers /
+			)
+			.logout(logout -> logout
+				.logoutUrl("/logout")
+				.logoutSuccessUrl("/login?logout")
+				.permitAll()
+			)
+			.csrf(csrf -> csrf.disable());
+		return http.build();
+	}
+
 
     @Bean
     public UserDetailsService users() {

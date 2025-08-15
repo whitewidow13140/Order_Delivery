@@ -1,15 +1,8 @@
-package com.demo.ordermanager.service;
+import lombok.extern.slf4j.Slf4j;
 
-import com.demo.ordermanager.domain.Order;
-import com.demo.ordermanager.messaging.OrderCreatedEvent;
-import com.demo.ordermanager.repo.OrderRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
+@Slf4j
 public class OrderService {
     private final OrderRepository repo;
     private final JmsTemplate jmsTemplate;
@@ -22,7 +15,11 @@ public class OrderService {
                 .quantity(saved.getQuantity())
                 .createdAt(saved.getCreatedAt())
                 .build();
-        jmsTemplate.convertAndSend("queue.orders.new", evt);
+        try {
+            jmsTemplate.convertAndSend("queue.orders.new", evt);
+        } catch (Exception e) {
+            log.error("JMS send failed, order created but event NOT sent", e);
+        }
         return saved;
     }
 

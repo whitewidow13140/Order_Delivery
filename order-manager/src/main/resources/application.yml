@@ -26,4 +26,5 @@ server:
       cookie:
         http-only: true
         same-site: Lax
+        name: ORDERSESSIONID
 

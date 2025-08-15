@@ -19,6 +19,7 @@ server:
       cookie:
         http-only: true
         same-site: Lax
+        name: DELIVERYSESSIONID
 
 environment:
   - SPRING_PROFILES_ACTIVE=docker

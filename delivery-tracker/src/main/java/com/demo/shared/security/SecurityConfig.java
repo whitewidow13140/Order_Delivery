@@ -23,11 +23,13 @@ public class SecurityConfig {
                 .loginPage("/login").permitAll()
                 .defaultSuccessUrl("/", true)
             )
-            .httpBasic(Customizer.withDefaults()) // pour curl -u
+            .httpBasic(Customizer.withDefaults())
             .rememberMe(rm -> rm
-                .key("demo-remember-me-key")   // clé arbitraire, stable
-                .tokenValiditySeconds(7 * 24 * 3600)  // 7 jours
-            )
+                .key("demo-remember-me-key-om")
+                .rememberMeCookieName("DT-REMEMBER-ME")
+                .tokenValiditySeconds(7 * 24 * 3600)
+                .alwaysRemember(true)
+                )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")

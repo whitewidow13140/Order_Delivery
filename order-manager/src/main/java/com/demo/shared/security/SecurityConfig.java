@@ -20,8 +20,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .formLogin(login -> login
-                .defaultSuccessUrl("/", true)
-                .permitAll()
+            .loginPage("/login").permitAll()
+            .defaultSuccessUrl("/", true)
             )
             .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
             .csrf(csrf -> csrf.disable());

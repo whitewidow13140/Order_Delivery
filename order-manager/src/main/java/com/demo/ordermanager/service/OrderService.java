@@ -1,5 +1,8 @@
 package com.demo.ordermanager.service;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.demo.ordermanager.domain.Order;
 import com.demo.ordermanager.messaging.OrderCreatedEvent;
 import com.demo.ordermanager.repo.OrderRepository;
@@ -18,7 +21,18 @@ public class OrderService {
     private final JmsTemplate jmsTemplate;
 
     public Order create(Order order) {
+        // Qui est l’utilisateur ?
+        String username = "anonymous";
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            username = auth.getName();
+        }
+
         Order saved = repo.save(order);
+
+        log.info("ORDER_CREATED id={} item={} qty={} byUser={}",
+                saved.getId(), saved.getItem(), saved.getQuantity(), username);
+
         OrderCreatedEvent evt = OrderCreatedEvent.builder()
                 .orderId(saved.getId())
                 .item(saved.getItem())
@@ -27,8 +41,9 @@ public class OrderService {
                 .build();
         try {
             jmsTemplate.convertAndSend("queue.orders.new", evt);
+            log.info("JMS_EVENT_PUBLISHED orderId={} destination={}", saved.getId(), "queue.orders.new");
         } catch (Exception e) {
-            log.error("JMS send failed, order created but event NOT sent", e);
+            log.error("JMS send failed, orderId={} (order created but event NOT sent)", saved.getId(), e);
         }
         return saved;
     }

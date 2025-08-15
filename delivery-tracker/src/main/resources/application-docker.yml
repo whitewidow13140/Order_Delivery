@@ -9,6 +9,7 @@ spring:
     username: ${DB_USER:demo}
     password: ${DB_PASSWORD:demo}
     driver-class-name: org.postgresql.Driver
+    embedded-database-connection: none
 
   jpa:
     hibernate:

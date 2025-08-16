@@ -24,10 +24,10 @@ rebel.xml
 .DS_Store
 Thumbs.db
 
-# --- Node (si jamais)
+# --- Node
 node_modules/
 
-# --- Python tests (si tu en as)
+# --- Python tests
 __pycache__/
 *.pyc
 .venv/

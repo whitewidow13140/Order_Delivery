@@ -37,3 +37,7 @@ __pycache__/
 *.zip
 *.tar
 *.tar.gz
+
+# --- Others
+generate_raw_urls.py
+raw_urls.txt

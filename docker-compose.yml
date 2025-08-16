@@ -28,7 +28,7 @@ services:
     environment:
       - ARTEMIS_USERNAME=admin
       - ARTEMIS_PASSWORD=admin
-      - JAVA_ARGS=-Djava.net.preferIPv4Stack=true
+      - JAVA_OPTS=-Djava.net.preferIPv4Stack=true
     ports:
       - "61616:61616"  # JMS
       - "8161:8161"    # Web console

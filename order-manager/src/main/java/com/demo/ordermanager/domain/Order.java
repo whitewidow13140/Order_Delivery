@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
 
+@Getter @Setter
 @Entity @Table(name="orders")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class Order {

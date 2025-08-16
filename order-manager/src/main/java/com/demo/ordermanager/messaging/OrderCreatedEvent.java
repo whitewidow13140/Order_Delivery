@@ -3,6 +3,7 @@ package com.demo.ordermanager.messaging;
 import lombok.*;
 import java.time.Instant;
 
+@Getter @Setter
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class OrderCreatedEvent {
     private Long orderId;

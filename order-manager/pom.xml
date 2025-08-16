@@ -47,7 +47,6 @@
       <scope>annotationProcessor</scope>
     </dependency>
 
-    <!-- (optionnel) Processor Spring si tu utilises @ConfigurationProperties -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-configuration-processor</artifactId>
@@ -88,8 +87,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>
         <configuration>
-          <release>${java.version}</release>
-          <parameters>true</parameters>
+          <release>24</release>
         </configuration>
       </plugin>
 

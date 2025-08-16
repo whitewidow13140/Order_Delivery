@@ -79,10 +79,10 @@
           <td th:text="${o.id}">1</td>
           <td th:text="${o.item}">Item</td>
           <td th:text="${o.quantity}">1</td>
-          <td>
+          <!-- <td>
             <span class="badge" th:classappend="${o.status}=='NEW' ? ' badge--info' : ' badge--ok'"
                   th:text="${o.status}">NEW</span>
-          </td>
+          </td> -->
           <td><span class="muted" th:text="${#temporals.format(o.createdAt,'yyyy-MM-dd HH:mm:ss')}">now</span></td>
         </tr>
         </tbody>

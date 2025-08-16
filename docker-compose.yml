@@ -21,16 +21,22 @@ services:
       - "8083:8080"
     depends_on:
       - postgres
-      
+
   activemq:
-    image: quay.io/artemiscloud/activemq-artemis-broker:latest
+    image: vromero/activemq-artemis:latest
+    container_name: activemq
     environment:
-      - AMQ_USER=admin
-      - AMQ_PASSWORD=admin
-      - AMQ_ACCEPTORS=artemis
+      - ARTEMIS_USERNAME=admin
+      - ARTEMIS_PASSWORD=admin
+      - JAVA_ARGS=-Djava.net.preferIPv4Stack=true
     ports:
-      - "8161:8161"     # console
-      - "61616:61616"   # JMS
+      - "61616:61616"  # JMS
+      - "8161:8161"    # Web console
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 61616 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
 
   order-manager:
     build: ./order-manager
@@ -60,3 +66,4 @@ services:
 
 volumes:
   pgdata:
+  activemq-data:

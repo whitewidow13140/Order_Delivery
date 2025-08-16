@@ -1,32 +1,59 @@
 package com.demo.deliverytracker.service;
 
-import com.demo.deliverytracker.domain.Delivery;
-import com.demo.deliverytracker.repo.DeliveryRepository;
-import com.demo.deliverytracker.messaging.OrderCreatedEvent;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
+import java.time.Instant;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.demo.deliverytracker.domain.Delivery;
+import com.demo.deliverytracker.messaging.OrderCreatedEvent;
+import com.demo.deliverytracker.repo.DeliveryRepository;
+
+@Service
 public class DeliveryService {
+    private static final Logger log = LoggerFactory.getLogger(DeliveryService.class);
+
     private final DeliveryRepository repo;
 
-    public Delivery createFromEvent(OrderCreatedEvent evt) {
-        Delivery d = Delivery.builder()
-                .orderId(evt.getOrderId())
-                .item(evt.getItem())
-                .quantity(evt.getQuantity())
-                .status("PREPARING")
-                .build();
-        return repo.save(d);
+    public DeliveryService(DeliveryRepository repo) {
+        this.repo = repo;
     }
 
-    public Delivery updateStatus(Long id, String status) {
+    public List<Delivery> all() {
+        return repo.findAll();
+    }
+
+    public Delivery createFromEvent(OrderCreatedEvent evt, String correlationId) {
+        Delivery d = new Delivery(
+                null,
+                evt.getOrderId(),
+                evt.getItem(),
+                evt.getQuantity(),
+                "RECEIVED",
+                evt.getCreatedAt() != null ? evt.getCreatedAt() : Instant.now(),
+                Instant.now()
+        );
+        Delivery saved = repo.save(d);
+        log.info("DELIVERY_RECEIVED orderId={} item={} qty={} corrId={}",
+                saved.getOrderId(), saved.getItem(), saved.getQuantity(), correlationId);
+        return saved;
+    }
+
+    public Delivery markDelivered(Long id) {
         Delivery d = repo.findById(id).orElseThrow();
-        d.setStatus(status);
-        return repo.save(d);
+        d.setStatus("DELIVERED");
+        d.setUpdatedAt(Instant.now());
+        Delivery saved = repo.save(d);
+        log.info("DELIVERY_MARKED_DELIVERED id={}", saved.getId());
+        return saved;
     }
 
-    public List<Delivery> all() { return repo.findAll(); }
+    // public Delivery updateStatus(Long id, String status) {
+    //     Delivery d = repo.findById(id).orElseThrow();
+    //     d.setStatus(status);
+    //     d.setUpdatedAt(Instant.now());
+    //     return repo.save(d);
+    // }
 }

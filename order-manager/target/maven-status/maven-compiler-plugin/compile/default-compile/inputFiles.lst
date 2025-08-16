@@ -1,8 +1,0 @@
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\ordermanager\domain\Order.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\ordermanager\messaging\OrderCreatedEvent.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\ordermanager\OrderManagerApplication.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\ordermanager\repo\OrderRepository.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\ordermanager\service\OrderService.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\ordermanager\web\OrderController.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\shared\jms\JmsConfig.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\order-manager\src\main\java\com\demo\shared\security\SecurityConfig.java

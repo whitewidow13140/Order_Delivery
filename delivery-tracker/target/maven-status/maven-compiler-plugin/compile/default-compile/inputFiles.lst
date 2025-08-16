@@ -1,9 +1,0 @@
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\DeliveryTrackerApplication.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\domain\Delivery.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\messaging\OrderCreatedEvent.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\messaging\OrderCreatedListener.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\repo\DeliveryRepository.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\service\DeliveryService.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\deliverytracker\web\DeliveryController.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\shared\jms\JmsConfig.java
-C:\Users\alexi\OneDrive\Documents\Python\Projet_test\delivery-tracker\src\main\java\com\demo\shared\security\SecurityConfig.java

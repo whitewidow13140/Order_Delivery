@@ -1,4 +1,0 @@
-com\demo\ordermanager\OrderManagerApplication.class
-com\demo\ordermanager\repo\OrderRepository.class
-com\demo\ordermanager\domain\Order.class
-com\demo\ordermanager\messaging\OrderCreatedEvent.class

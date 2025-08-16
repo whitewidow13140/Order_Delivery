@@ -49,4 +49,11 @@ public class DeliveryService {
         log.info("DELIVERY_MARKED_DELIVERED id={}", saved.getId());
         return saved;
     }
+
+    // public Delivery updateStatus(Long id, String status) {
+    //     Delivery d = repo.findById(id).orElseThrow();
+    //     d.setStatus(status);
+    //     d.setUpdatedAt(Instant.now());
+    //     return repo.save(d);
+    // }
 }

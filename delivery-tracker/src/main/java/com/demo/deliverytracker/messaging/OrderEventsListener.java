@@ -1,12 +1,14 @@
 package com.demo.deliverytracker.messaging;
 
-import com.demo.deliverytracker.service.DeliveryService;
-import jakarta.jms.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+
+import com.demo.deliverytracker.service.DeliveryService;
+
+import jakarta.jms.Message;
 
 @Component
 public class OrderEventsListener {

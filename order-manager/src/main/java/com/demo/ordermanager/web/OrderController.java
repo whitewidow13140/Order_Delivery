@@ -1,23 +1,32 @@
 package com.demo.ordermanager.web;
 
-import com.demo.ordermanager.domain.Order;
-import com.demo.ordermanager.service.OrderService;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.demo.ordermanager.domain.Order;
+import com.demo.ordermanager.service.OrderService;
 
 @Controller
-@RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService service;
 
-    // UI
+    // Injection par constructeur (remplace @RequiredArgsConstructor)
+    public OrderController(OrderService service) {
+        this.service = service;
+    }
+
+    // ---- UI ----
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("orders", service.all());
@@ -31,12 +40,16 @@ public class OrderController {
         return "redirect:/";
     }
 
-    // -------- REST API --------
+    // ---- REST API ----
     @RestController
     @RequestMapping("/orders")
-    @RequiredArgsConstructor
     static class Api {
         private final OrderService service;
+
+        // Injection par constructeur (remplace @RequiredArgsConstructor)
+        public Api(OrderService service) {
+            this.service = service;
+        }
 
         @PostMapping
         public ResponseEntity<Order> create(@RequestBody Order order) {

@@ -54,10 +54,11 @@ public class OrderService {
                 saved.getId(), saved.getItem(), saved.getQuantity(), saved.getCreatedAt()
         );
 
-        jmsTemplate.convertAndSend("queue.orders.new", evt, m -> {
-            // header standard JMS
-            m.setJMSCorrelationID(correlationId);
-            return m;
+        jmsTemplate.convertAndSend("queue.orders.new", evt, msg -> {
+            msg.setStringProperty("_type", "OrderCreatedEvent");
+            msg.setJMSCorrelationID(correlationId);
+            msg.setStringProperty("corrId", correlationId);
+            return msg;
         });
 
         return saved;

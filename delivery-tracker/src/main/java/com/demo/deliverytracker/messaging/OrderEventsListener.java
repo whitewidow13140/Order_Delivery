@@ -27,7 +27,7 @@ public class OrderEventsListener {
         } catch (Exception e) {
             corrId = null;
         }
-        log.info("JMS EVENT RECEIVED orderId={} corrId={}", evt.getOrderId(), corrId);
+        log.info("JMS EVENT RECEIVED orderId={} item={} qty={} corrId={}", evt.getOrderId(), evt.getItem(), evt.getQuantity(), corrId);
         deliveryService.createFromEvent(evt, corrId);
     }
 }

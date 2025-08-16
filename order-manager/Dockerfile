@@ -1,5 +1,5 @@
 # ---- Build stage ----
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM eclipse-temurin:24-jdk AS build
 WORKDIR /app
 COPY pom.xml .
 RUN mvn -q -DskipTests dependency:go-offline

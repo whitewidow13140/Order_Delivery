@@ -1,4 +1,7 @@
-target/
-.git/
+target
+.git
 .gitignore
-README.md
+.idea
+.vscode
+*.iml
+**/*.log

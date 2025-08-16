@@ -1,15 +1,33 @@
 package com.demo.ordermanager.messaging;
 
-import lombok.*;
 import java.time.Instant;
 
-@Getter @Setter
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class OrderCreatedEvent {
+
     private Long orderId;
     private String item;
-    private Integer quantity;
+    private int quantity;
     private Instant createdAt;
 
-    private String correlationId;
+    public OrderCreatedEvent() {}
+
+    public OrderCreatedEvent(Long orderId, String item, int quantity, Instant createdAt) {
+        this.orderId = orderId;
+        this.item = item;
+        this.quantity = quantity;
+        this.createdAt = createdAt;
+    }
+
+    // getters & setters
+    public Long getOrderId() { return orderId; }
+    public void setOrderId(Long orderId) { this.orderId = orderId; }
+
+    public String getItem() { return item; }
+    public void setItem(String item) { this.item = item; }
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

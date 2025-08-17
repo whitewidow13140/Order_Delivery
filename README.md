@@ -244,6 +244,14 @@ la méthode listener doit exposer dt_jms_consume_seconds_* (via @Timed).
 
 * V4 - Pipeline CI/CD GitHub Actions
 
-* V5 - Tests de charge (JMeter)
+* V5 - Tests de charge (JMeter), Add collection Postman
 
 * V6 - Tests d’accessibilité (axe-core)
+
+* V7 - ESB
+
+* V8 - Application mobile + tests (Appium?)
+
+* V9 - 
+
+* V10 - Déploiement en ligne

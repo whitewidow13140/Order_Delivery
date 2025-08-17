@@ -123,13 +123,38 @@ mvn spring-boot:run
 ```
 
 
+#### Déployer tous les conteneurs :
+
+Si besoin de redéployer après nouvelle modification : 
+
+> docker compose down -v
+
+Build des conteneurs depuis le fichier docker-compose :
+
+> docker compose build --no-cache
+
+Déploiement des conteneurs : 
+
+> docker compose up
+
+
 3️⃣ Accéder aux applications
+
+![Order_Delivery_login.png](./images/App/Order_Delivery_login.png)
 
 * Order Manager : http://localhost:8081
 
+
+![Order-Manager.png](./images/App/Order-Manager.png)
+
 * Delivery Tracker : http://localhost:8082
 
+
+![Delivery-Tracker.png](./images/App/Delivery-Tracker.png)
+
 * ActiveMQ Console : http://localhost:8161 (admin/admin)
+
+![ActiveMQ.png](./images/ActiveMQ/ActiveMQ_Dashboard.png)
 
 
 4️⃣ Comptes par défaut
@@ -166,6 +191,14 @@ Adminer UI : http://localhost:8083
 → DB demo
 
 
+![Adminer_auth.png](./images/Adminer/Adminer_auth.png)
+
+![Adminer_DeliveryEvents.png](./images/Adminer/Adminer_DeliveryEvents.png)
+
+![Adminer_OrderEvents.png](./images/Adminer/Adminer_OrderEvents.png)
+
+![Adminer_Orders.png](./images/Adminer/Adminer_Orders.png)
+
 ### Prometheus / Loki
 
 http://localhost:9090/targets
@@ -192,6 +225,9 @@ Loki :
 
 http://localhost:3000/explore?schemaVersion=1&panes=%7B%22g7s%22:%7B%22datasource%22:%22eevamue0nf5dsf%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bservice%3D%5C%22delivery-tracker%5C%22%7D%20%7C%3D%20%60%60%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22eevamue0nf5dsf%22%7D,%22editorMode%22:%22builder%22,%22direction%22:%22backward%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D,%22compact%22:false%7D%7D&orgId=1
 
+
+![Prometheus_Targets.png](./images/Prometheus/Prometheus_Targets.png)
+
 ### Grafana
 
 http://localhost:9090/targets → 3 cibles UP.
@@ -211,6 +247,12 @@ http://localhost:3000/explore?schemaVersion=1&panes=%7B%22A%22%3A%7B%22datasourc
 
 C. Suivre une COMMANDE par corrId (OM + DT dans la même vue) ➡️ remplacer REPLACE_WITH_CORR_ID par ton corrId (copié depuis la réponse HTTP ou un log) :
 http://localhost:3000/explore?schemaVersion=1&panes=%7B%22A%22%3A%7B%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bservice%3D%5C%22order-manager%5C%22%7D+%7C%3D+%5C%22REPLACE_WITH_CORR_ID%5C%22%22%7D%2C%7B%22refId%22%3A%22B%22%2C%22expr%22%3A%22%7Bservice%3D%5C%22delivery-tracker%5C%22%7D+%7C%3D+%5C%22REPLACE_WITH_CORR_ID%5C%22%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-6h%22%2C%22to%22%3A%22now%22%7D%7D%7D&orgId=1
+
+
+![Grafana_Metrics.png](./images/Grafana/Grafana_Metrics.png)
+
+
+![Grafana_logs.png](./images/Grafana/Grafana_logs.png)
 
 
 Créer une commande :

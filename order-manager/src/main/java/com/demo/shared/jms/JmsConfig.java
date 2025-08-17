@@ -23,7 +23,7 @@ public class JmsConfig {
         MappingJackson2MessageConverter conv = new MappingJackson2MessageConverter();
         conv.setObjectMapper(om);
         conv.setTargetType(MessageType.TEXT);
-        conv.setTypeIdPropertyName("__TypeId__");
+        conv.setTypeIdPropertyName("_type");
 
         Map<String, Class<?>> mappings = new HashMap<>();
         mappings.put("OrderCreatedEvent", OrderCreatedEvent.class);

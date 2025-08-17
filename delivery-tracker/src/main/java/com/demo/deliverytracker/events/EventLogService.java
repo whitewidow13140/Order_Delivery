@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.jms.support.JmsHeaders;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.Destination;
@@ -31,8 +32,8 @@ public class EventLogService {
     e.setCorrelationId(UUID.fromString(correlationId));
     e.setOrderId(orderId);
     e.setEventType(type);
-    e.setPayload(writeJson(payload));
-    e.setHeaders(writeJson(sanitizeHeaders(headers)));
+    e.setPayload(toJson(payload));
+    e.setHeaders(toJson(sanitizeHeaders(headers)));
     repo.save(e);
   }
 
@@ -57,8 +58,7 @@ public class EventLogService {
     return out;
   }
 
-  private String writeJson(Object o) {
-    try { return om.writeValueAsString(o); }
-    catch (Exception ex) { throw new IllegalArgumentException("Cannot serialize payload", ex); }
+    private JsonNode toJson(Object o) {
+    return om.valueToTree(o);
   }
 }

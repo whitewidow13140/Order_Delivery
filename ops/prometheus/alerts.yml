@@ -1,0 +1,24 @@
+groups:
+- name: app-alerts
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 2m
+    labels: { severity: critical }
+    annotations:
+      summary: "Instance down"
+      description: "{{ $labels.instance }} is not reachable"
+
+  - alert: DeliveryLagHigh
+    expr: histogram_quantile(0.95, sum by (le) (rate(dt_delivery_e2e_ms_bucket[5m]))) > 2000
+    for: 5m
+    labels: { severity: warning }
+    annotations:
+      summary: "E2E p95 > 2s"
+
+  - alert: ArtemisQueueBacklog
+    expr: artemis_message_count > 0
+    for: 5m
+    labels: { severity: warning }
+    annotations:
+      summary: "Messages en attente sur {{ $labels.queue }}"

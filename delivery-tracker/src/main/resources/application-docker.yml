@@ -13,7 +13,7 @@ spring:
     hikari:
       data-source-properties:
         ApplicationName: order-manager
-        
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -27,3 +27,13 @@ spring:
     default-schema: delivery_tracker
     schemas: delivery_tracker
     baseline-on-migrate: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true

@@ -27,3 +27,13 @@ spring:
     default-schema: order_manager
     schemas: order_manager
     baseline-on-migrate: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true

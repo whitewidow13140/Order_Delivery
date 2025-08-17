@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 10s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: order-manager
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["order-manager:8080"]
+
+  - job_name: delivery-tracker
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["delivery-tracker:8080"]
+
+  - job_name: activemq
+    static_configs:
+      - targets: ["activemq:9404"]

@@ -15,29 +15,24 @@ import org.springframework.stereotype.Component;
 import com.demo.deliverytracker.events.EventLogService;
 import com.demo.deliverytracker.service.DeliveryService;
 
+import com.demo.deliverytracker.metrics.DeliveryMetrics;
+import io.micrometer.core.annotation.Timed;
+
 @Component
 public class OrderEventsListener {
     private static final Logger log = LoggerFactory.getLogger(OrderEventsListener.class);
     private final DeliveryService deliveryService;
     private final EventLogService eventLogService;
+    private final DeliveryMetrics deliveryMetrics;
 
-    public OrderEventsListener(DeliveryService deliveryService, EventLogService eventLogService) {
+
+    public OrderEventsListener(DeliveryService deliveryService, EventLogService eventLogService, DeliveryMetrics deliveryMetrics) {
         this.deliveryService = deliveryService;
         this.eventLogService = eventLogService;
+        this.deliveryMetrics = deliveryMetrics;
     }
 
-    // @JmsListener(destination = "queue.orders.new")
-    // public void onOrderCreated(@Payload OrderCreatedEvent evt, Message jmsMessage) {
-    //     String corrId;
-    //     try {
-    //         corrId = jmsMessage.getJMSCorrelationID();
-    //     } catch (Exception e) {
-    //         corrId = null;
-    //     }
-    //     log.info("JMS EVENT RECEIVED orderId={} item={} qty={} corrId={}", evt.getOrderId(), evt.getItem(), evt.getQuantity(), corrId);
-    //     deliveryService.createFromEvent(evt, corrId);
-    // }
-
+    @Timed(value = "dt.jms.consume", extraTags = { "queue", "queue.orders.new" })
     @JmsListener(destination = "queue.orders.new")
     public void onOrderCreated(OrderCreatedEvent evt,
                              @Header(name = JmsHeaders.CORRELATION_ID, required = false) String corrId,
@@ -48,8 +43,10 @@ public class OrderEventsListener {
     try {
       eventLogService.record(corr, evt.getOrderId(), "DELIVERY_RECEIVED", evt, headers);
 
-      log.info("JMS EVENT RECEIVED orderId={} item={} qty={} corrId={}", evt.getOrderId(), evt.getItem(), evt.getQuantity(), corrId);
+    //   log.info("JMS EVENT RECEIVED orderId={} item={} qty={} corrId={}", evt.getOrderId(), evt.getItem(), evt.getQuantity(), corrId);
       deliveryService.createFromEvent(evt, corr);
+
+      deliveryMetrics.recordE2E(evt.getCreatedAt());
 
       eventLogService.record(corr, evt.getOrderId(), "DELIVERY_PERSISTED",
           Map.of("status", "PREPARING"));

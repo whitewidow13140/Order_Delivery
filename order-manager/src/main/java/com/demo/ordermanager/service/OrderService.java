@@ -14,19 +14,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.demo.ordermanager.domain.Order;
+import com.demo.ordermanager.events.EventLogService;
 import com.demo.ordermanager.messaging.OrderCreatedEvent;
+import com.demo.ordermanager.messaging.OrderEventsPublisher;
 import com.demo.ordermanager.repo.OrderRepository;
 
 @Service
 public class OrderService {
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
+    private final EventLogService eventLogService;
+    private final OrderEventsPublisher eventsPublisher;
+
     private final OrderRepository orderRepository;
     private final JmsTemplate jmsTemplate;
 
-    public OrderService(OrderRepository orderRepository, JmsTemplate jmsTemplate) {
+    public OrderService(OrderRepository orderRepository, JmsTemplate jmsTemplate, EventLogService eventLogService, OrderEventsPublisher eventsPublisher) {
         this.orderRepository = orderRepository;
         this.jmsTemplate = jmsTemplate;
+        this.eventLogService = eventLogService;
+        this.eventsPublisher = eventsPublisher;
     }
 
     /** Utilisé par l'UI et l'API (ton contrôleur) */
@@ -53,6 +60,10 @@ public class OrderService {
         OrderCreatedEvent evt = new OrderCreatedEvent(
                 saved.getId(), saved.getItem(), saved.getQuantity(), saved.getCreatedAt()
         );
+
+        eventsPublisher.publishOrderCreated(
+            new OrderCreatedEvent(saved.getId(), saved.getItem(), saved.getQuantity(), Instant.now())
+            );
 
         jmsTemplate.convertAndSend("queue.orders.new", evt, msg -> {
             msg.setStringProperty("_type", "OrderCreatedEvent");

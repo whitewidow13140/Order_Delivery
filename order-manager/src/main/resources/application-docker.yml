@@ -9,7 +9,10 @@ spring:
     username: ${DB_USER:demo}
     password: ${DB_PASSWORD:demo}
     driver-class-name: org.postgresql.Driver
-    embedded-database-connection: none
+    embedded-database-connection: 
+    hikari:
+      data-source-properties:
+        ApplicationName: order-manager
 
   jpa:
     hibernate:

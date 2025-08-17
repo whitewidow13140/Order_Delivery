@@ -44,6 +44,7 @@ public class OrderEventsListener {
                              @Headers Map<String, Object> headers) {
     String corr = (corrId == null || corrId.isBlank()) ? UUID.randomUUID().toString() : corrId;
     MDC.put("correlationId", corr);
+    MDC.put("corrId", corr);
     try {
       eventLogService.record(corr, evt.getOrderId(), "DELIVERY_RECEIVED", evt, headers);
 
@@ -54,6 +55,7 @@ public class OrderEventsListener {
           Map.of("status", "PREPARING"));
     } finally {
       MDC.remove("correlationId");
+      MDC.remove("corrId");
     }
   }
 }

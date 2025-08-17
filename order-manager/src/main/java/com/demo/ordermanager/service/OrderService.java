@@ -61,9 +61,9 @@ public class OrderService {
                 saved.getId(), saved.getItem(), saved.getQuantity(), saved.getCreatedAt()
         );
 
-        eventsPublisher.publishOrderCreated(
-            new OrderCreatedEvent(saved.getId(), saved.getItem(), saved.getQuantity(), Instant.now())
-            );
+        // eventsPublisher.publishOrderCreated(
+        //     new OrderCreatedEvent(saved.getId(), saved.getItem(), saved.getQuantity(), Instant.now())
+        //     );
 
         jmsTemplate.convertAndSend("queue.orders.new", evt, msg -> {
             msg.setStringProperty("_type", "OrderCreatedEvent");

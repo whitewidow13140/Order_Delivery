@@ -13,3 +13,5 @@ CREATE TABLE IF NOT EXISTS delivery_tracker.events (
 CREATE INDEX IF NOT EXISTS idx_dt_events_corr  ON delivery_tracker.events (correlation_id);
 CREATE INDEX IF NOT EXISTS idx_dt_events_oid   ON delivery_tracker.events (order_id);
 CREATE INDEX IF NOT EXISTS idx_dt_events_type_time ON delivery_tracker.events (event_type, occurred_at DESC);
+
+ALTER TABLE delivery_tracker.deliveries ADD CONSTRAINT uk_delivery_order UNIQUE (order_id);

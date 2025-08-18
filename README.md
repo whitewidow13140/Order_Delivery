@@ -138,6 +138,9 @@ Déploiement des conteneurs :
 > docker compose up
 
 
+![Docker_Desktop.png](./images/Docker/Docker_Desktop.png)
+
+
 3️⃣ Accéder aux applications
 
 ![Order_Delivery_login.png](./images/App/Order_Delivery_login.png)

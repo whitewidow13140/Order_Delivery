@@ -313,3 +313,5 @@ la méthode listener doit exposer dt_jms_consume_seconds_* (via @Timed).
 * V9 ⌛ - Tests d’accessibilité (axe-core), Tests Selenium front
 
 * V10 ⌛ - Déploiement en ligne - AWS on demand
+
+* V11 ⌛ - Logiques métiers 

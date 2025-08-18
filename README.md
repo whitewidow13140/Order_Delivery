@@ -281,22 +281,22 @@ la méthode listener doit exposer dt_jms_consume_seconds_* (via @Timed).
 
 📈 Roadmap
 
-* V1 - Base fonctionnelle (UI + API + JMS + tests)
+* V1 ✅ - Base fonctionnelle (UI + API + JMS + tests)
 
-* V2 - Passage à PostgreSQL
+* V2 ✅ - Passage à PostgreSQL
 
-* V3 - Monitoring (Prometheus + Grafana) + Loki
+* V3 ✅ - Monitoring (Prometheus + Grafana) + Loki
 
-* V4 - Pipeline CI/CD GitHub Actions
+* V4 ⌛ - Pipeline CI/CD GitHub Actions
 
-* V5 - Tests de charge (JMeter), Add collection Postman
+* V5 ⌛ - Application Web : portail d'achat pour les clients (table items, orders JSon)
 
-* V6 - Tests d’accessibilité (axe-core)
+* V6 ⌛ - Application mobile + tests (Appium?)
 
-* V7 - ESB
+* V7 ⌛ - ESB + Gateway
 
-* V8 - Application mobile + tests (Appium?)
+* V8 ⌛ - Tests de charge (JMeter), Add collection Postman
 
-* V9 - 
+* V9 ⌛ - Tests d’accessibilité (axe-core), Tests Selenium front
 
-* V10 - Déploiement en ligne
+* V10 ⌛ - Déploiement en ligne - AWS on demand

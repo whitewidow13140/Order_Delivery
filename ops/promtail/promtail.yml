@@ -1,0 +1,34 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+
+    # On enrichit avec des labels utiles
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: service
+      - source_labels: ['__meta_docker_container_name']
+        target_label: container
+        regex: '/(.+)'
+
+    # Pipelines: on extrait corrId et les noms d'événements du message
+    pipeline_stages:
+      - regex:
+          expression: '(?i)(corrId|correlationId)=(?P<corrId>[0-9a-fA-F-]{36})'
+      - labels:
+          corrId:
+      - regex:
+          expression: '(?P<event>ORDER_CREATED|DELIVERY_RECEIVED|DELIVERY_PERSISTED)'
+      - labels:
+          event:

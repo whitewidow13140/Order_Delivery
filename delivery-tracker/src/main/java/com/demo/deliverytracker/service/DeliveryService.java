@@ -26,19 +26,22 @@ public class DeliveryService {
     }
 
     public Delivery createFromEvent(OrderCreatedEvent evt, String correlationId) {
-        Delivery d = new Delivery(
-                null,
-                evt.getOrderId(),
-                evt.getItem(),
-                evt.getQuantity(),
-                "RECEIVED",
-                evt.getCreatedAt() != null ? evt.getCreatedAt() : Instant.now(),
-                Instant.now()
-        );
-        Delivery saved = repo.save(d);
-        log.info("DELIVERY_RECEIVED orderId={} item={} qty={} corrId={}",
-                saved.getOrderId(), saved.getItem(), saved.getQuantity(), correlationId);
-        return saved;
+        return repo.findByOrderId(evt.getOrderId())
+        .orElseGet(()-> {
+            Delivery d = new Delivery(
+                    null,
+                    evt.getOrderId(),
+                    evt.getItem(),
+                    evt.getQuantity(),
+                    "RECEIVED",
+                    evt.getCreatedAt() != null ? evt.getCreatedAt() : Instant.now(),
+                    Instant.now()
+            );
+            Delivery saved = repo.save(d);
+            log.info("DELIVERY_RECEIVED from JMS : orderId={} item={} qty={} corrId={}",
+                    saved.getOrderId(), saved.getItem(), saved.getQuantity(), correlationId);
+            return saved;
+        });
     }
 
     public Delivery markDelivered(Long id) {

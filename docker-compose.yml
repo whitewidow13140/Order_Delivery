@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: demo
       POSTGRES_DB: demo
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
       interval: 5s
@@ -29,9 +29,11 @@ services:
       - ARTEMIS_USERNAME=admin
       - ARTEMIS_PASSWORD=admin
       - JAVA_OPTS=-Djava.net.preferIPv4Stack=true
+      - ENABLE_JMX_EXPORTER=true
     ports:
-      - "61616:61616"  # JMS
-      - "8161:8161"    # Web console
+      - "61616:61616"   # JMS
+      - "8161:8161"     # Web console
+      - "9404:9404"     # Prometheus
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 61616 || exit 1"]
       interval: 5s
@@ -41,7 +43,7 @@ services:
   order-manager:
     build: ./order-manager
     ports:
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
@@ -54,7 +56,7 @@ services:
   delivery-tracker:
     build: ./delivery-tracker
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
@@ -64,6 +66,50 @@ services:
       postgres:
         condition: service_healthy
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - order-manager
+      - delivery-tracker
+      - activemq
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+
+  loki:
+    image: grafana/loki:3.0.0
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./ops/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki
+    
+  promtail:
+    image: grafana/promtail:3.0.0
+    command: -config.file=/etc/promtail/promtail.yml
+    volumes:
+      - ./ops/promtail/promtail.yml:/etc/promtail/promtail.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - loki
+
 volumes:
   pgdata:
   activemq-data:
+  loki-data:

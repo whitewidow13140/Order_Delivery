@@ -21,7 +21,7 @@ public class JmsReceiverConfig {
 
     private static final Logger log = LoggerFactory.getLogger(JmsReceiverConfig.class);
 
-    @Bean
+    @Bean(name = "jacksonJmsMessageConverter")
     public MessageConverter jacksonJmsMessageConverter(ObjectMapper objectMapper) {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setObjectMapper(objectMapper);
@@ -33,7 +33,7 @@ public class JmsReceiverConfig {
                 "OrderCreatedEvent", OrderCreatedEvent.class
         ));
 
-        return converter; // pas de setTrustedPackages ici
+        return converter;
     }
 
     @Bean

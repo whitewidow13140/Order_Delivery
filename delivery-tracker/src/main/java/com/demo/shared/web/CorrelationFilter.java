@@ -25,12 +25,14 @@ public class CorrelationFilter extends OncePerRequestFilter {
         .filter(s -> !s.isBlank())
         .orElse(UUID.randomUUID().toString());
 
+    MDC.put("correlationId", corrId);
     MDC.put("corrId", corrId);
     res.setHeader("X-Correlation-Id", corrId);
     try {
       chain.doFilter(req, res);
     } finally {
       MDC.remove("corrId");
+      MDC.remove("correlationId");
     }
   }
 }

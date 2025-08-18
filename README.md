@@ -15,6 +15,8 @@ Il est conçu pour servir de **support de démonstration**, couvrant :
 - Persistance (H2 en mémoire)
 - Tests automatisés (Robot Framework + Selenium)
 - Orchestration locale (Docker Compose)
+- Monitoring (Grafana)
+- Application mobile
 
 ---
 

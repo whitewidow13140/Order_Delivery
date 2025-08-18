@@ -44,13 +44,24 @@ Il est conçu pour servir de **support de démonstration**, couvrant :
 
 - **Java 17**
 - **Spring Boot 3.x**
-- **Thymeleaf** (UI simple)
+- **Thymeleaf** (UI)
 - **Spring Security**
 - **ActiveMQ Artemis** (broker JMS)
-- **H2 Database** (persistance en mémoire)
+- **H2 Database**
 - **Maven**
 - **Docker Compose**
 - **Robot Framework + Selenium** (tests automatisés UI & API)
+- **Prometheus + Loki + Grafana**
+- **Postgres + Adminer**
+
+### à venir : 
+
+- **Selenium + RobotFramework**
+- **AWS**
+- **JMeter**
+- **Appium**
+
+Et d'autres
 
 ---
 
@@ -267,7 +278,7 @@ Créer une commande :
 la méthode listener doit exposer dt_jms_consume_seconds_* (via @Timed).
 
 
-# 🧪 Lancer les tests automatisés
+# 🧪 Lancer les tests automatisés (WIP)
 
 1️⃣ Installer les dépendances
 

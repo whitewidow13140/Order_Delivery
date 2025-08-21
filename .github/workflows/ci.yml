@@ -308,14 +308,20 @@ jobs:
           done
 
       - name: Create order
+        env:
+          E2E_USER: ${{ secrets.E2E_USER }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
         run: |
-          curl -fsS -u user:user123 -H "Content-Type: application/json" \
+          curl -fsS -u "$E2E_USER:$E2E_PASSWORD" -H "Content-Type: application/json" \
             -d '{"item":"CI-0001","quantity":1}' \
             http://localhost:8081/orders
 
       - name: Check DT contains CI-0001
+        env:
+          E2E_USER: ${{ secrets.E2E_USER }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
         run: |
-          curl -fsS http://localhost:8082/deliveries | tee out.json
+          curl -fsS -u "$E2E_USER:$E2E_PASSWORD" http://localhost:8082/deliveries | tee out.json
           grep -q "CI-0001" out.json
 
   depcheck:

@@ -126,3 +126,171 @@ jobs:
           push: true
           tags: ${{ steps.meta_dt.outputs.tags }}
           labels: ${{ steps.meta_dt.outputs.labels }}
+
+      - name: Build+push OM
+        uses: docker/build-push-action@v6
+        with:
+          context: ./order-manager
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta_om.outputs.tags }}
+          labels: ${{ steps.meta_om.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build+push DT
+        uses: docker/build-push-action@v6
+        with:
+          context: ./delivery-tracker
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta_dt.outputs.tags }}
+          labels: ${{ steps.meta_dt.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  docker-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: |
+            order-manager/Dockerfile
+            delivery-tracker/Dockerfile
+
+  gha-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/actionlint@v1
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+
+  sbom:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@v0.17.10
+      - name: SBOM (repo)
+        run: syft . -o cyclonedx-json > sbom-repo.json
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-repo
+          path: sbom-repo.json
+
+  trivy:
+    runs-on: ubuntu-latest
+    needs: docker-publish
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          ignore-unfixed: true
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Scan OM image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/order-manager:${{ github.sha }}
+          format: table
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+      - name: Scan DT image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/delivery-tracker:${{ github.sha }}
+          format: table
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    needs: docker-publish
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: demo, POSTGRES_PASSWORD: demo, POSTGRES_DB: demo }
+        options: >-
+          --health-cmd="pg_isready -U demo -d demo"
+          --health-interval=5s --health-timeout=3s --health-retries=20
+        ports: [ "5432:5432" ]
+      artemis:
+        image: vromero/activemq-artemis:latest
+        env: { ARTEMIS_USERNAME: admin, ARTEMIS_PASSWORD: admin }
+        ports: [ "61616:61616" ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start OM + DT (latest build)
+        run: |
+          cat > docker-compose.ci.yml <<'YML'
+          services:
+            order-manager:
+              image: ghcr.io/${{ github.repository_owner }}/order-manager:${{ github.sha }}
+              environment:
+                SPRING_PROFILES_ACTIVE: docker
+                ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
+              ports: [ "8081:8080" ]
+              depends_on: [ ]
+            delivery-tracker:
+              image: ghcr.io/${{ github.repository_owner }}/delivery-tracker:${{ github.sha }}
+              environment:
+                SPRING_PROFILES_ACTIVE: docker
+                ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
+              ports: [ "8082:8080" ]
+              depends_on: [ ]
+          YML
+          docker compose -f docker-compose.ci.yml up -d
+          # wait for health-ish endpoints
+          for i in {1..60}; do
+            curl -fsS http://localhost:8081/actuator/health && curl -fsS http://localhost:8082/actuator/health && break
+            sleep 2
+          done
+      - name: Create order
+        run: |
+          curl -fsS -u user:password -H "Content-Type: application/json" \
+            -d '{"item":"CI-0001","quantity":1}' \
+            http://localhost:8081/orders
+      - name: Check DT list contains CI-0001
+        run: |
+          curl -fsS http://localhost:8082/deliveries | tee out.json
+          grep -q "CI-0001" out.json
+
+  depcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "order-delivery"
+          path: "."
+          format: "HTML"
+          args: >
+            --enableRetired
+      - uses: actions/upload-artifact@v4
+        with:
+          name: depcheck-report
+          path: reports
+
+

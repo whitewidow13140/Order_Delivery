@@ -1,0 +1,3 @@
+ignored:
+  - DL3008   # apk add without pin versions
+  - DL3018   # pin versions on apk add

@@ -155,7 +155,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: |
+          files: |
             order-manager/Dockerfile
             delivery-tracker/Dockerfile
 
@@ -163,7 +163,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: rhysd/actionlint@v1
+      - uses: reviewdog/action-actionlint@v1
+        with:
+          fail_on_error: true
 
   secret-scan:
     runs-on: ubuntu-latest
@@ -177,12 +179,13 @@ jobs:
     needs: build-test
     steps:
       - uses: actions/checkout@v4
-      - name: Install Syft
-        uses: anchore/sbom-action/download-syft@v0.17.10
-      - name: SBOM (repo)
-        run: syft . -o cyclonedx-json > sbom-repo.json
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+      - name: Generate SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom-repo.json
+      - uses: actions/upload-artifact@v4
         with:
           name: sbom-repo
           path: sbom-repo.json
@@ -231,48 +234,78 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        env: { POSTGRES_USER: demo, POSTGRES_PASSWORD: demo, POSTGRES_DB: demo }
+        env:
+          POSTGRES_USER: demo
+          POSTGRES_PASSWORD: demo
+          POSTGRES_DB: demo
         options: >-
           --health-cmd="pg_isready -U demo -d demo"
           --health-interval=5s --health-timeout=3s --health-retries=20
         ports: [ "5432:5432" ]
       artemis:
         image: vromero/activemq-artemis:latest
-        env: { ARTEMIS_USERNAME: admin, ARTEMIS_PASSWORD: admin }
+        env:
+          ARTEMIS_USERNAME: admin
+          ARTEMIS_PASSWORD: admin
         ports: [ "61616:61616" ]
     steps:
       - uses: actions/checkout@v4
-      - name: Start OM + DT (latest build)
+
+      - name: Lowercase OWNER
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create compose file for E2E
         run: |
           cat > docker-compose.ci.yml <<'YML'
           services:
             order-manager:
-              image: ghcr.io/${{ github.repository_owner }}/order-manager:${{ github.sha }}
+              image: ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
               environment:
                 SPRING_PROFILES_ACTIVE: docker
+                # override DB/JMS to reach job services
+                SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/demo
+                SPRING_DATASOURCE_USERNAME: demo
+                SPRING_DATASOURCE_PASSWORD: demo
                 ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
+              extra_hosts:
+                - "host.docker.internal:host-gateway"
               ports: [ "8081:8080" ]
-              depends_on: [ ]
+
             delivery-tracker:
-              image: ghcr.io/${{ github.repository_owner }}/delivery-tracker:${{ github.sha }}
+              image: ghcr.io/${{ env.OWNER_LC }}/delivery-tracker:${{ github.sha }}
               environment:
                 SPRING_PROFILES_ACTIVE: docker
+                SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/demo
+                SPRING_DATASOURCE_USERNAME: demo
+                SPRING_DATASOURCE_PASSWORD: demo
                 ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
+              extra_hosts:
+                - "host.docker.internal:host-gateway"
               ports: [ "8082:8080" ]
-              depends_on: [ ]
           YML
+
+      - name: Start apps
+        run: |
           docker compose -f docker-compose.ci.yml up -d
-          # wait for health-ish endpoints
           for i in {1..60}; do
             curl -fsS http://localhost:8081/actuator/health && curl -fsS http://localhost:8082/actuator/health && break
             sleep 2
           done
+
       - name: Create order
         run: |
           curl -fsS -u user:password -H "Content-Type: application/json" \
             -d '{"item":"CI-0001","quantity":1}' \
             http://localhost:8081/orders
-      - name: Check DT list contains CI-0001
+
+      - name: Check DT contains CI-0001
         run: |
           curl -fsS http://localhost:8082/deliveries | tee out.json
           grep -q "CI-0001" out.json

@@ -24,7 +24,7 @@ jobs:
           cache: maven
 
       - name: Maven build (unit tests)
-        run: mvn -q -DskipITs=true -DskipIT=true -B clean package
+        run: mvn -q -B -f pom.xml -DskipITs=true -DskipIT=true clean package
 
       - name: Upload jars
         uses: actions/upload-artifact@v4
@@ -33,6 +33,7 @@ jobs:
           path: |
             order-manager/target/order-manager-*.jar
             delivery-tracker/target/delivery-tracker-*.jar
+
 
   it-compose:
     runs-on: ubuntu-latest
@@ -65,16 +66,16 @@ jobs:
       - name: Wait for deps
         run: |
           for i in {1..60}; do
-            nc -z localhost 5432 && nc -z localhost 61616 && break
+            (echo > /dev/tcp/127.0.0.1/5432) && (echo > /dev/tcp/127.0.0.1/61616) && break
             sleep 2
           done
 
-      - name: Run integration tests (profile docker)
+      - name: Run tests with docker profile
         env:
           SPRING_PROFILES_ACTIVE: docker
           ACTIVEMQ_BROKER_URL: tcp://localhost:61616
-        run: |
-          mvn -q -B -pl order-manager,delivery-tracker -am test
+        run: mvn -q -B -f pom.xml test
+
 
   docker-publish:
     runs-on: ubuntu-latest

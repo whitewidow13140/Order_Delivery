@@ -82,7 +82,8 @@ jobs:
     needs: [ build-test ]
     steps:
       - uses: actions/checkout@v4
-
+      - name: Lowercase OWNER
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Buildx
@@ -99,10 +100,11 @@ jobs:
         id: meta_om
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/order-manager
+          images: ghcr.io/${{ env.OWNER_LC }}/order-manager
           tags: |
             type=ref,event=branch
             type=sha
+            type=raw,value=${{ github.sha }}
       - name: Build+push OM
         uses: docker/build-push-action@v6
         with:
@@ -115,10 +117,11 @@ jobs:
         id: meta_dt
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/delivery-tracker
+          images: ghcr.io/${{ env.OWNER_LC }}/delivery-tracker
           tags: |
             type=ref,event=branch
             type=sha
+            type=raw,value=${{ github.sha }}
       - name: Build+push DT
         uses: docker/build-push-action@v6
         with:
@@ -151,13 +154,17 @@ jobs:
 
   docker-lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dockerfile:
+          - order-manager/Dockerfile
+          - delivery-tracker/Dockerfile
     steps:
       - uses: actions/checkout@v4
       - uses: hadolint/hadolint-action@v3.1.0
         with:
-          files: |
-            order-manager/Dockerfile
-            delivery-tracker/Dockerfile
+          dockerfile: ${{ matrix.dockerfile }}
+          config: .hadolint.yaml
 
   gha-lint:
     runs-on: ubuntu-latest
@@ -213,7 +220,7 @@ jobs:
       - name: Scan OM image
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/order-manager:${{ github.sha }}
+          image-ref: ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
           format: table
           ignore-unfixed: true
           severity: CRITICAL,HIGH
@@ -222,7 +229,7 @@ jobs:
       - name: Scan DT image
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/delivery-tracker:${{ github.sha }}
+          image-ref: ghcr.io/${{ env.OWNER_LC }}/delivery-tracker:${{ github.sha }}
           format: table
           ignore-unfixed: true
           severity: CRITICAL,HIGH

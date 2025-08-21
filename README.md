@@ -44,7 +44,7 @@ Il est conçu pour servir de **support de démonstration**, couvrant :
 
 ## 🛠 Stack technique
 
-- **Java 17**
+- **Java 21**
 - **Spring Boot 3.x**
 - **Thymeleaf** (UI)
 - **Spring Security**

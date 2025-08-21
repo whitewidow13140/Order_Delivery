@@ -280,6 +280,10 @@ Créer une commande :
 la méthode listener doit exposer dt_jms_consume_seconds_* (via @Timed).
 
 
+## Github Actions - CI/CD
+
+![Github_CI](./images/Github_Actions/Github_CI.png)
+
 # 🧪 Lancer les tests automatisés (WIP)
 
 1️⃣ Installer les dépendances

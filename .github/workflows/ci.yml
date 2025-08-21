@@ -1,0 +1,343 @@
+name: ci
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Maven build (unit tests)
+        run: mvn -q -B -f pom.xml -DskipITs=true -DskipIT=true clean package
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: |
+            order-manager/target/order-manager-*.jar
+            delivery-tracker/target/delivery-tracker-*.jar
+
+
+  it-compose:
+    runs-on: ubuntu-latest
+    needs: build-test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: demo
+          POSTGRES_PASSWORD: demo
+          POSTGRES_DB: demo
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd="pg_isready -U demo -d demo"
+          --health-interval=5s --health-timeout=3s --health-retries=20
+      artemis:
+        image: vromero/activemq-artemis:latest
+        env:
+          ARTEMIS_USERNAME: admin
+          ARTEMIS_PASSWORD: admin
+        ports: [ "61616:61616" ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Wait for deps
+        run: |
+          for i in {1..60}; do
+            (echo > /dev/tcp/127.0.0.1/5432) && (echo > /dev/tcp/127.0.0.1/61616) && break
+            sleep 2
+          done
+
+      - name: Run tests with docker profile
+        env:
+          SPRING_PROFILES_ACTIVE: docker
+          ACTIVEMQ_BROKER_URL: tcp://localhost:61616
+        run: mvn -q -B -f pom.xml test
+
+
+  docker-publish:
+    runs-on: ubuntu-latest
+    needs: [ build-test ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lowercase OWNER
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta (OM)
+        id: meta_om
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.OWNER_LC }}/order-manager
+          tags: |
+            type=ref,event=branch
+            type=sha
+            type=raw,value=${{ github.sha }}
+      - name: Build+push OM
+        uses: docker/build-push-action@v6
+        with:
+          context: ./order-manager
+          push: true
+          tags: ${{ steps.meta_om.outputs.tags }}
+          labels: ${{ steps.meta_om.outputs.labels }}
+
+      - name: Docker meta (DT)
+        id: meta_dt
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.OWNER_LC }}/delivery-tracker
+          tags: |
+            type=ref,event=branch
+            type=sha
+            type=raw,value=${{ github.sha }}
+      - name: Build+push DT
+        uses: docker/build-push-action@v6
+        with:
+          context: ./delivery-tracker
+          push: true
+          tags: ${{ steps.meta_dt.outputs.tags }}
+          labels: ${{ steps.meta_dt.outputs.labels }}
+
+      - name: Build+push OM
+        uses: docker/build-push-action@v6
+        with:
+          context: ./order-manager
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta_om.outputs.tags }}
+          labels: ${{ steps.meta_om.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build+push DT
+        uses: docker/build-push-action@v6
+        with:
+          context: ./delivery-tracker
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta_dt.outputs.tags }}
+          labels: ${{ steps.meta_dt.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  docker-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dockerfile:
+          - order-manager/Dockerfile
+          - delivery-tracker/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          config: .hadolint.yaml
+
+  gha-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: reviewdog/action-actionlint@v1
+        with:
+          fail_on_error: true
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+
+  sbom:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom-repo.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-repo
+          path: sbom-repo.json
+
+  trivy:
+    runs-on: ubuntu-latest
+    needs: docker-publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase OWNER
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull OM image (debug)
+        run: docker pull ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
+
+      - name: Scan OM image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
+          format: table
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          # scanners: 'vuln'
+
+      - name: Pull DT image (debug)
+        run: docker pull ghcr.io/${{ env.OWNER_LC }}/delivery-tracker:${{ github.sha }}
+
+      - name: Scan DT image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/${{ env.OWNER_LC }}/delivery-tracker:${{ github.sha }}
+          format: table
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    needs: docker-publish
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: demo
+          POSTGRES_PASSWORD: demo
+          POSTGRES_DB: demo
+        options: >-
+          --health-cmd="pg_isready -U demo -d demo"
+          --health-interval=5s --health-timeout=3s --health-retries=20
+        ports: [ "5432:5432" ]
+      artemis:
+        image: vromero/activemq-artemis:latest
+        env:
+          ARTEMIS_USERNAME: admin
+          ARTEMIS_PASSWORD: admin
+        ports: [ "61616:61616" ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase OWNER
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create compose file for E2E
+        run: |
+          cat > docker-compose.ci.yml <<'YML'
+          services:
+            order-manager:
+              image: ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
+              environment:
+                SPRING_PROFILES_ACTIVE: docker
+                SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/demo
+                SPRING_DATASOURCE_USERNAME: demo
+                SPRING_DATASOURCE_PASSWORD: demo
+                ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
+              extra_hosts: [ "host.docker.internal:host-gateway" ]
+              ports: [ "8081:8080" ]
+
+            delivery-tracker:
+              image: ghcr.io/${{ env.OWNER_LC }}/delivery-tracker:${{ github.sha }}
+              environment:
+                SPRING_PROFILES_ACTIVE: docker
+                SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/demo
+                SPRING_DATASOURCE_USERNAME: demo
+                SPRING_DATASOURCE_PASSWORD: demo
+                ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
+              extra_hosts: [ "host.docker.internal:host-gateway" ]
+              ports: [ "8082:8080" ]
+          YML
+
+
+      - name: Start apps
+        run: |
+          docker compose -f docker-compose.ci.yml up -d
+          for i in {1..60}; do
+            curl -fsS http://localhost:8081/actuator/health && curl -fsS http://localhost:8082/actuator/health && break
+            sleep 2
+          done
+
+      - name: Create order
+        env:
+          E2E_USER: ${{ secrets.E2E_USER }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+        run: |
+          curl -fsS -u "$E2E_USER:$E2E_PASSWORD" -H "Content-Type: application/json" \
+            -d '{"item":"CI-0001","quantity":1}' \
+            http://localhost:8081/orders
+
+      - name: Check DT contains CI-0001
+        env:
+          E2E_USER: ${{ secrets.E2E_USER }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+        run: |
+          curl -fsS -u "$E2E_USER:$E2E_PASSWORD" http://localhost:8082/deliveries | tee out.json
+          grep -q "CI-0001" out.json
+
+  depcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "order-delivery"
+          path: "."
+          format: "HTML"
+          args: >
+            --enableRetired
+      - uses: actions/upload-artifact@v4
+        with:
+          name: depcheck-report
+          path: reports
+
+

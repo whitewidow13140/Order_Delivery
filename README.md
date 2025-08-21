@@ -44,7 +44,7 @@ Il est conçu pour servir de **support de démonstration**, couvrant :
 
 ## 🛠 Stack technique
 
-- **Java 17**
+- **Java 21**
 - **Spring Boot 3.x**
 - **Thymeleaf** (UI)
 - **Spring Security**
@@ -279,6 +279,10 @@ Créer une commande :
 
 la méthode listener doit exposer dt_jms_consume_seconds_* (via @Timed).
 
+
+## Github Actions - CI/CD
+
+![Github_CI](./images/Github_Actions/Github_CI.png)
 
 # 🧪 Lancer les tests automatisés (WIP)
 

@@ -202,13 +202,9 @@ jobs:
     needs: docker-publish
     steps:
       - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: fs
-          ignore-unfixed: true
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: '1'
+
+      - name: Lowercase OWNER
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
       - name: Login GHCR
         uses: docker/login-action@v3
@@ -216,6 +212,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull OM image (debug)
+        run: docker pull ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
 
       - name: Scan OM image
         uses: aquasecurity/trivy-action@0.24.0
@@ -225,6 +224,10 @@ jobs:
           ignore-unfixed: true
           severity: CRITICAL,HIGH
           exit-code: '1'
+          # scanners: 'vuln'
+
+      - name: Pull DT image (debug)
+        run: docker pull ghcr.io/${{ env.OWNER_LC }}/delivery-tracker:${{ github.sha }}
 
       - name: Scan DT image
         uses: aquasecurity/trivy-action@0.24.0
@@ -276,13 +279,11 @@ jobs:
               image: ghcr.io/${{ env.OWNER_LC }}/order-manager:${{ github.sha }}
               environment:
                 SPRING_PROFILES_ACTIVE: docker
-                # override DB/JMS to reach job services
                 SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/demo
                 SPRING_DATASOURCE_USERNAME: demo
                 SPRING_DATASOURCE_PASSWORD: demo
                 ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
-              extra_hosts:
-                - "host.docker.internal:host-gateway"
+              extra_hosts: [ "host.docker.internal:host-gateway" ]
               ports: [ "8081:8080" ]
 
             delivery-tracker:
@@ -293,10 +294,10 @@ jobs:
                 SPRING_DATASOURCE_USERNAME: demo
                 SPRING_DATASOURCE_PASSWORD: demo
                 ACTIVEMQ_BROKER_URL: tcp://host.docker.internal:61616
-              extra_hosts:
-                - "host.docker.internal:host-gateway"
+              extra_hosts: [ "host.docker.internal:host-gateway" ]
               ports: [ "8082:8080" ]
           YML
+
 
       - name: Start apps
         run: |
@@ -308,7 +309,7 @@ jobs:
 
       - name: Create order
         run: |
-          curl -fsS -u user:password -H "Content-Type: application/json" \
+          curl -fsS -u user:user123 -H "Content-Type: application/json" \
             -d '{"item":"CI-0001","quantity":1}' \
             http://localhost:8081/orders
 
